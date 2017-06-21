@@ -74,6 +74,7 @@ import {DemoSourceRender} from './html-source/demo-source-render.directive';
 import {CheEditor} from './editor/che-editor.directive';
 import {CheEditorController} from './editor/che-editor.controller';
 import {PagingButtons} from './paging-button/paging-button.directive';
+import {CheRowToolbar} from './toolbar/che-row-toolbar.directive';
 
 export class WidgetConfig {
 
@@ -166,6 +167,7 @@ export class WidgetConfig {
       .directive('cheShowArea', CheShowArea)
       // editor
       .controller('CheEditorController', CheEditorController)
-      .directive('cheEditor', CheEditor);
+      .directive('cheEditor', CheEditor)
+      .directive('cheRowToolbar', CheRowToolbar);
   }
 }
