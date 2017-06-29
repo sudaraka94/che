@@ -29,17 +29,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.String.format;
+import static java.nio.file.Files.exists;
 import static java.nio.file.Files.isDirectory;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.eclipse.che.api.project.shared.Constants.CHE_DIR;
 import static org.eclipse.che.api.vfs.watcher.FileWatcherUtils.toNormalPath;
 
@@ -53,18 +54,16 @@ public class FileWatcherIgnoreFileTracker {
     private static final String FILE_WATCHER_IGNORE_FILE_NAME = "fileWatcherExcludes";
     private static final String FILE_WATCHER_IGNORE_FILE_PATH = "/" + CHE_DIR + "/" + FILE_WATCHER_IGNORE_FILE_NAME;
 
-    private final Map<Path, Set<Path>> excludes;
-    private final FileWatcherManager   fileWatcherManager;
-    private final ProjectManager       projectManager;
-    private final Path                 root;
-    private       int                  ignoreFileWatchingOperationID;
-
+    private final Map<Path, Set<Path>> excludes = new ConcurrentHashMap<>();
+    private final FileWatcherManager fileWatcherManager;
+    private final ProjectManager     projectManager;
+    private final Path               root;
+    private       int                ignoreFileWatchingOperationID;
 
     @Inject
     public FileWatcherIgnoreFileTracker(ProjectManager projectManager,
                                         FileWatcherManager fileWatcherManager,
                                         @Named("che.user.workspaces.storage") File root) {
-        this.excludes = new HashMap<>();
         this.projectManager = projectManager;
         this.fileWatcherManager = fileWatcherManager;
         this.root = root.toPath().normalize().toAbsolutePath();
@@ -134,7 +133,7 @@ public class FileWatcherIgnoreFileTracker {
             }
 
             Path ignoreFilePath = toNormalPath(root, ignoreFileLocation);
-            if (!Files.exists(ignoreFilePath)) {
+            if (!exists(ignoreFilePath)) {
                 return;
             }
 
@@ -145,8 +144,8 @@ public class FileWatcherIgnoreFileTracker {
             Set<Path> projectExcludes = lines.stream()
                                              .filter(line -> !isNullOrEmpty(line.trim()))
                                              .map(line -> projectPath.resolve(line.trim()))
-                                             .filter(excludePath -> Files.exists(excludePath))
-                                             .collect(Collectors.toSet());
+                                             .filter(excludePath -> exists(excludePath))
+                                             .collect(toSet());
 
             if (!projectExcludes.isEmpty()) {
                 excludes.put(projectPath, projectExcludes);

@@ -15,9 +15,9 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
+
+import static com.google.common.collect.Sets.newConcurrentHashSet;
 
 /**
  * Registry for managing of tracking creation,
@@ -26,13 +26,12 @@ import java.util.Set;
  */
 @Singleton
 public class FileWatcherExcludePatternsRegistry {
-    private List<PathMatcher> excludes;
-    private List<PathMatcher> includes;
+    private Set<PathMatcher> excludes;
+    private Set<PathMatcher> includes = newConcurrentHashSet();
 
     @Inject
     public FileWatcherExcludePatternsRegistry(@Named("che.user.workspaces.storage.excludes") Set<PathMatcher> excludes) {
-        this.excludes = new ArrayList<>(excludes);
-        this.includes = new ArrayList<>();
+        this.excludes = newConcurrentHashSet(excludes);
     }
 
     /**
